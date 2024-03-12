@@ -70,7 +70,7 @@ main:
   - update_token:
       assign:
         - next_page_token: ${default(map.get(response, "nextPageToken"), "")}
-  - export_then_delete_jobs:
+  - export_jobs:
       for:
         value: j
         in: ${default(map.get(response, "jobs"), [])}
@@ -92,15 +92,6 @@ main:
                     "name": ${j.name}
                     "uid": ${j.uid}
                     "job": ${json.encode_to_string(j)}
-        - log_delete_step:
-            call: sys.log
-            args:
-              text: ${"Deleting Batch job " + j.name}
-              severity: NOTICE 
-        - delete_job:
-            call: googleapis.batch.v1.projects.locations.jobs.delete
-            args:
-              name: ${j.name}
         - increment_count_of_jobs:
             assign:
               - number_of_jobs: ${number_of_jobs + 1}
@@ -110,4 +101,4 @@ main:
         next: list_batch_jobs
       next: done
   - done:
-      return: ${number_of_jobs + " Batch jobs were exported to Big Query table " + table_id + " and deleted"}
+      return: ${number_of_jobs + " Batch jobs were exported to Big Query table " + table_id}
